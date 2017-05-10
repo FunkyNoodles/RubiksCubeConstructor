@@ -18,8 +18,7 @@
 #include <chrono>
 #include <vector>
 
-using namespace cv;
-using namespace std;
+#include "Cube.h"
 
 const char * WIN_VIDEO = "Video Feed";
 const char * WIN_TEST = "Test";
@@ -57,8 +56,14 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 	//mixChannels(&timg, 1, &gray0, 1, ch, 1);
 	//GaussianBlur(timg, timg, Size(7, 7), 20, 20, BORDER_DEFAULT);
 	
-	//fastNlMeansDenoisingColored(timg, timg);
 	cvtColor(timg, gray0, CV_BGR2GRAY);
+
+	// Apply theshold
+	//cv::threshold(gray0, gray0, thresh, 255, CV_THRESH_TRUNC);
+	cv::imshow(WIN_TEST1, gray0);
+
+	cv::Mat imageHSV;
+	cvtColor(timg, imageHSV, CV_BGR2HSV);
 
 	// Denoise using cuda
 	cv::cuda::GpuMat gray0Device, gray0DeviceDst;
@@ -66,7 +71,7 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 	cv::cuda::fastNlMeansDenoising(gray0Device, gray0DeviceDst, 10);
 	gray0DeviceDst.download(gray0);
 	//fastNlMeansDenoising(gray0, gray0);
-	cv::imshow(WIN_TEST1, gray0);
+	
 	// try several threshold levels
 	//for (int l = 0; l < N; l++)
 	//{
@@ -78,7 +83,7 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 	
 
 	// find contours and store them all as a list
-	findContours(gray, contours, hierarchy, RETR_LIST, CHAIN_APPROX_SIMPLE);
+	findContours(gray, contours, hierarchy, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
 	std::vector<cv::Point> approx;
 
@@ -88,8 +93,8 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 	{
 		// approximate contour with accuracy proportional
 		// to the contour perimeter
-		approxPolyDP(Mat(contours[i]), approx, arcLength(cv::Mat(contours[i]), true)*0.02, true);
-
+		approxPolyDP(cv::Mat(contours[i]), approx, arcLength(cv::Mat(contours[i]), true)*0.02, true);
+		
 		// square contours should have 4 vertices after approximation
 		// relatively large area (to filter out noisy contours)
 		// and be convex.
@@ -97,8 +102,8 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 		// area may be positive or negative - in accordance with the
 		// contour orientation
 		if (approx.size() == 4 &&
-			fabs(cv::contourArea(cv::Mat(approx))) > 1000 &&
-			cv::isContourConvex(cv::Mat(approx)))
+			fabs(cv::contourArea(cv::Mat(approx))) > 100
+			&& cv::isContourConvex(cv::Mat(approx)))
 		{
 			double maxCosine = 0;
 
@@ -112,7 +117,7 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 			// if cosines of all angles are small
 			// (all angles are ~90 degree) then write quandrange
 			// vertices to resultant sequence
-			if (maxCosine < 0.5)
+			//if (maxCosine < 0.5)
 				squares.push_back(approx);
 		}
 	}
@@ -134,6 +139,12 @@ static void drawSquares(cv::Mat& image, const std::vector<std::vector<cv::Point>
 
 int main(int arg, char ** argv) {
 
+	Cube * cube = new Cube(3);
+	cube->printCube();
+	while (true)
+	{
+
+	}
 	char keyIn;
 
 	cv::VideoCapture cam(0);
