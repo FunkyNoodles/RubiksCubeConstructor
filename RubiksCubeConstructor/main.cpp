@@ -141,6 +141,13 @@ int main(int arg, char ** argv) {
 
 	Cube * cube = new Cube(3);
 	cube->printCube();
+	for (int i = 0; i < 105; ++i) {
+		//cube->printCube();
+		cube->rotateF();
+		//cube->printCube();
+		cube->rotateU();
+	}
+	cube->printCube();
 	while (true)
 	{
 
