@@ -58,6 +58,42 @@ void Cube::rotateFPrime()
 	rotateF();
 }
 
+void Cube::rotateB()
+{
+	// Roate face
+	for (int i = 0; i < cubeSize / 2; ++i) {
+		for (int j = 0; j < (cubeSize + 1) / 2; ++j) {
+			cyclicRoll(cube[static_cast<int>(AbsoluteDirection::BACK)][i][j],
+				cube[static_cast<int>(AbsoluteDirection::BACK)][cubeSize - 1 - j][i],
+				cube[static_cast<int>(AbsoluteDirection::BACK)][cubeSize - 1 - i][cubeSize - 1 - j],
+				cube[static_cast<int>(AbsoluteDirection::BACK)][j][cubeSize - 1 - i]);
+		}
+	}
+	// Rotate side
+	Color * tmp = new Color[cubeSize];
+	for (int i = 0; i < cubeSize; ++i) {
+		tmp[i] = cube[static_cast<int>(AbsoluteDirection::RIGHT)][i][cubeSize - 1];
+		cube[static_cast<int>(AbsoluteDirection::RIGHT)][i][cubeSize - 1] = cube[static_cast<int>(AbsoluteDirection::BOTTOM)][cubeSize - 1][cubeSize - 1- i];
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::TOP)][0][i], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::LEFT)][cubeSize - i - 1][0], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::BOTTOM)][cubeSize - 1][cubeSize - i - 1], tmp[i]);
+	}
+	delete[] tmp;
+}
+
+void Cube::rotateBPrime()
+{
+	rotateB();
+	rotateB();
+	rotateB();
+}
+
 void Cube::rotateU()
 {
 	// Roate face
@@ -92,6 +128,114 @@ void Cube::rotateUPrime()
 	rotateU();
 	rotateU();
 	rotateU();
+}
+
+void Cube::rotateD()
+{
+	// Roate face
+	for (int i = 0; i < cubeSize / 2; ++i) {
+		for (int j = 0; j < (cubeSize + 1) / 2; ++j) {
+			cyclicRoll(cube[static_cast<int>(AbsoluteDirection::BOTTOM)][i][j],
+				cube[static_cast<int>(AbsoluteDirection::BOTTOM)][cubeSize - 1 - j][i],
+				cube[static_cast<int>(AbsoluteDirection::BOTTOM)][cubeSize - 1 - i][cubeSize - 1 - j],
+				cube[static_cast<int>(AbsoluteDirection::BOTTOM)][j][cubeSize - 1 - i]);
+		}
+	}
+	// Rotate side
+	Color * tmp = new Color[cubeSize];
+	for (int i = 0; i < cubeSize; ++i) {
+		tmp[i] = cube[static_cast<int>(AbsoluteDirection::FRONT)][cubeSize - 1][i];
+		cube[static_cast<int>(AbsoluteDirection::FRONT)][cubeSize - 1][i] = cube[static_cast<int>(AbsoluteDirection::LEFT)][cubeSize - 1][i];
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::RIGHT)][cubeSize - 1][i], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::BACK)][cubeSize - 1][i], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::LEFT)][cubeSize - 1][i], tmp[i]);
+	}
+	delete[] tmp;
+}
+
+void Cube::rotateDPrime()
+{
+	rotateD();
+	rotateD();
+	rotateD();
+}
+
+void Cube::rotateR()
+{
+	// Roate face
+	for (int i = 0; i < cubeSize / 2; ++i) {
+		for (int j = 0; j < (cubeSize + 1) / 2; ++j) {
+			cyclicRoll(cube[static_cast<int>(AbsoluteDirection::RIGHT)][i][j],
+				cube[static_cast<int>(AbsoluteDirection::RIGHT)][cubeSize - 1 - j][i],
+				cube[static_cast<int>(AbsoluteDirection::RIGHT)][cubeSize - 1 - i][cubeSize - 1 - j],
+				cube[static_cast<int>(AbsoluteDirection::RIGHT)][j][cubeSize - 1 - i]);
+		}
+	}
+	// Rotate side
+	Color * tmp = new Color[cubeSize];
+	for (int i = 0; i < cubeSize; ++i) {
+		tmp[i] = cube[static_cast<int>(AbsoluteDirection::FRONT)][i][cubeSize - 1];
+		cube[static_cast<int>(AbsoluteDirection::FRONT)][i][cubeSize - 1] = cube[static_cast<int>(AbsoluteDirection::BOTTOM)][i][cubeSize - 1];
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::TOP)][i][cubeSize - 1], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::BACK)][cubeSize - 1 - i][0], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::BOTTOM)][i][cubeSize - 1], tmp[i]);
+	}
+	delete[] tmp;
+}
+
+void Cube::rotateRPrime()
+{
+	rotateR();
+	rotateR();
+	rotateR();
+}
+
+void Cube::rotateL()
+{
+	// Roate face
+	for (int i = 0; i < cubeSize / 2; ++i) {
+		for (int j = 0; j < (cubeSize + 1) / 2; ++j) {
+			cyclicRoll(cube[static_cast<int>(AbsoluteDirection::LEFT)][i][j],
+				cube[static_cast<int>(AbsoluteDirection::LEFT)][cubeSize - 1 - j][i],
+				cube[static_cast<int>(AbsoluteDirection::LEFT)][cubeSize - 1 - i][cubeSize - 1 - j],
+				cube[static_cast<int>(AbsoluteDirection::LEFT)][j][cubeSize - 1 - i]);
+		}
+	}
+	// Rotate side
+	Color * tmp = new Color[cubeSize];
+	for (int i = 0; i < cubeSize; ++i) {
+		tmp[i] = cube[static_cast<int>(AbsoluteDirection::FRONT)][i][0];
+		cube[static_cast<int>(AbsoluteDirection::FRONT)][i][0] = cube[static_cast<int>(AbsoluteDirection::TOP)][i][0];
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::BOTTOM)][i][0], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::BACK)][cubeSize - 1 - i][cubeSize - 1], tmp[i]);
+	}
+	for (int i = 0; i < cubeSize; ++i) {
+		swap(cube[static_cast<int>(AbsoluteDirection::TOP)][i][0], tmp[i]);
+	}
+	delete[] tmp;
+}
+
+void Cube::rotateLPrime()
+{
+	rotateL();
+	rotateL();
+	rotateL();
 }
 
 void Cube::printCube()

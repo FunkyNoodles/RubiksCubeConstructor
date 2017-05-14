@@ -38,8 +38,17 @@ public:
 	// Rotations
 	void rotateF();
 	void rotateFPrime();
+	void rotateB();
+	void rotateBPrime();
 	void rotateU();
 	void rotateUPrime();
+	void rotateD();
+	void rotateDPrime();
+	void rotateR();
+	void rotateRPrime();
+	void rotateL();
+	void rotateLPrime();
+
 
 	void printCube();
 
