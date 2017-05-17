@@ -5,6 +5,7 @@
 #include <math.h>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 #define FOUND -1
 #define MAX_STEPS 200 // It shouldn't take more than 200 steps to solve a 3by3 cube
@@ -32,9 +33,15 @@ Cube::Cube(const Cube & c)
 	this->cubeSize = c.getCubeSize();
 	cube = allocateMemory(cubeSize);
 	buildMoveFunctions();
+
+	std::cout << "Copied" << std::endl;
+	if (c.getCube()[0] == 0) {
+		std::cout << c.getCube()[0] << std::endl;
+	}
 	for (int i = 0; i < NUM_FACES; ++i) {
 		for (int j = 0; j < cubeSize; ++j) {
 			for (int k = 0; k < cubeSize; ++k) {
+				//std::cout << i << "\t" << j << "\t" << k << "\t" << c.getCube() << "\t" << c.getCube()[i] << std::endl;
 				cube[i][j][k] = c.getCube()[i][j][k];
 			}
 		}
@@ -56,12 +63,15 @@ bool Cube::isSolved()
 	return true;
 }
 
-bool Cube::operator==(const Cube & cube)
+bool Cube::operator==(const Cube & cube) const
 {
+	if (cube.getCubeSize() != this->getCubeSize()) {
+		return false;
+	}
 	for (int i = 0; i < NUM_FACES; ++i) {
-		for (int j = 0; j < cubeSize; ++j) {
-			for (int k = 0; k < cubeSize; ++k) {
-				if (this->cube[i][j][k] != cube.getCube()[i][j][k]) {
+		for (int j = 0; j < cube.getCubeSize(); ++j) {
+			for (int k = 0; k < cube.getCubeSize(); ++k) {
+				if (cube.getCube()[i][j][k] != this->getCube()[i][j][k]) {
 					return false;
 				}
 			}
@@ -315,17 +325,44 @@ int Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
 
 void Cube::aStar(Cube & goalState)
 {
-	/*std::priority_queue<Cube, std::vector<Cube>, CubeCostCompare> openSet;
-	std::unordered_map<Cube, bool> closedSet;
+	std::priority_queue<Cube, std::vector<Cube>, CubeCostCompare> openQueue;
+	std::unordered_set<Cube> openSet;
+	std::unordered_set<Cube> closedSet;
 
-	while (!openSet.empty()) {
-		Cube current = openSet.top();
+	openSet.insert(*this);
+	openQueue.push(*this);
+
+	while (!openQueue.empty()) {
+		Cube current = openQueue.top();
 		if (current.isSolved()) {
 			return;
 		}
-		openSet.pop();
-
-	}*/
+		openQueue.pop();
+		openSet.erase(current);
+		closedSet.insert(current);
+		std::vector<Cube> successors = buildSuccessors(current);
+		for (int i = 0; i < successors.size(); ++i) {
+			Cube s = successors[i];
+			//std::cout << s.g << std::endl;
+			if (closedSet.count(s) != 0) {
+				// The state has already been visited
+				continue;
+			}
+			int tentativeG = current.g + 1;
+			if (openSet.count(s) == 0) {
+				// Found a new state
+				s.printCube();
+				openSet.insert(s);
+				openQueue.push(s);
+			}
+			else if (tentativeG >= s.g) {
+				continue;
+			}
+			std::cout << "Move: " <<  i << std::endl;
+			s.g = tentativeG;
+			s.f = s.g + s.getHeuristic(HeuristicType::MISPLACED, goalState);
+		}
+	}
 }
 
 void Cube::idaStar(Cube & goalState)
@@ -358,12 +395,14 @@ void Cube::shuffle(int steps)
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	std::uniform_int_distribution<int> uni(0, moveFunctions.size() - 1);
+	std::cout << "Shuffling cube: " << std::endl;
 	for (int i = 0; i < steps; ++i) {
 		//std::cout << (int)uni(rng) << std::endl;
 		int move = (int)uni(rng);
 		std::cout << move << std::endl;
 		(this->*moveFunctions[move])();
 	}
+	std::cout << "Shuffle Finished" << std::endl;
 }
 
 void Cube::printCube()
@@ -409,7 +448,7 @@ int Cube::getCubeSize() const
 
 Cube::Color *** Cube::getCube() const
 {
-	return cube;
+	return this->cube;
 }
 
 Cube::~Cube()
@@ -417,10 +456,13 @@ Cube::~Cube()
 	for (int i = 0; i < cubeSize; ++i) {
 		for (int j = 0; j < cubeSize; ++j) {
 			delete[] cube[i][j];
+			cube[i][j] = nullptr;
 		}
 		delete[] cube[i];
+		cube[i] = nullptr;
 	}
 	delete[] cube;
+	cube = nullptr;
 }
 
 /*

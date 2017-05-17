@@ -142,9 +142,12 @@ int main(int arg, char ** argv) {
 	Cube * goalCube = new Cube(3);
 	Cube * cube = new Cube(3);
 	cube->shuffle(3);
+	//std::cout << "Test: " << (*cube == *goalCube) << std::endl;
+	//std::cout << sizeof(size_t) << " bytes" << std::endl;
 	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
-	cube->idaStar(*goalCube);
+	cube->aStar(*goalCube);
 	std::cout << "Done" << std::endl;
+	return 0 ;
 	while (true)
 	{
 

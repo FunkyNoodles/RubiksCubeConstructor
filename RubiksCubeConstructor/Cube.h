@@ -51,7 +51,7 @@ public:
 	bool isSolved();
 
 	// Overloads
-	bool operator==(const Cube & cube);
+	bool operator==(const Cube & cube) const;
 
 	// Rotations
 	void rotateF();
@@ -95,4 +95,39 @@ private:
 	Color *** allocateMemory(int cubeSize);
 	void buildMoveFunctions();
 };
+
+//bool operator==(const Cube & lhs, const Cube & rhs) {
+//	if (lhs.getCubeSize() != rhs.getCubeSize()) {
+//		return false;
+//	}
+//	for (int i = 0; i < NUM_FACES; ++i) {
+//		for (int j = 0; j < lhs.getCubeSize(); ++j) {
+//			for (int k = 0; k < lhs.getCubeSize(); ++k) {
+//				if (lhs.getCube()[i][j][k] != rhs.getCube()[i][j][k]) {
+//					return false;
+//				}
+//			}
+//		}
+//	}
+//	return true;
+//}
+
+namespace std {
+	// A very simple hjash function to get going
+	template <>
+	struct hash<Cube> {
+		size_t operator()(const Cube & cube) const noexcept {
+			int primes[6] = { 2,3,5,7,11,13 };
+			size_t h = 0;
+			for (int i = 0; i < NUM_FACES; ++i) {
+				for (int j = 0; j < cube.getCubeSize(); ++j) {
+					for (int k = 0; k <cube.getCubeSize(); ++k) {
+						h += primes[static_cast<int>(cube.getCube()[i][j][k])] * primes[i] * primes[j] * primes[k];
+					}
+				}
+			}
+			return h;
+		}
+	};
+}
 
