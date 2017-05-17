@@ -139,8 +139,10 @@ static void drawSquares(cv::Mat& image, const std::vector<std::vector<cv::Point>
 
 int main(int arg, char ** argv) {
 
+	Cube * goalCube = new Cube(3);
 	Cube * cube = new Cube(3);
-	cube->printCube();
+	cube->shuffle(20);
+	std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
 	while (true)
 	{
 

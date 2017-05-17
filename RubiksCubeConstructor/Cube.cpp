@@ -1,18 +1,22 @@
 #include "Cube.h"
 
 #include <iostream>
+#include <random>
+#include <math.h>
 
 
 Cube::Cube(int cubeSize)
 {
 	this->cubeSize = cubeSize;
-	allocateMemory(cubeSize);
+	cube = allocateMemory(cubeSize);
+	buildMoveFunctions();
 }
 
 Cube::Cube(Cube & c)
 {
 	this->cubeSize = c.getCubeSize();
-	allocateMemory(cubeSize);
+	cube = allocateMemory(cubeSize);
+	buildMoveFunctions();
 	for (int i = 0; i < NUM_FACES; ++i) {
 		for (int j = 0; j < cubeSize; ++j) {
 			for (int k = 0; k < cubeSize; ++k) {
@@ -238,6 +242,49 @@ void Cube::rotateLPrime()
 	rotateL();
 }
 
+int Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
+{
+	int heuristic = 0;
+	switch (heuristicType)
+	{
+	case HeuristicType::MISPLACED:
+		for (int i = 0; i < NUM_FACES; ++i) {
+			for (int j = 0; j < cubeSize; ++j) {
+				for (int k = 0; k < cubeSize; ++k) {
+					if (cube[i][j][k] != goalCube.getCube()[i][j][k]) {
+						++heuristic;
+					}
+				}
+			}
+		}
+		heuristic = ceil((float)heuristic / 21);
+		break;
+	case HeuristicType::TOTAL_MANHATTAN:
+		break;
+	case HeuristicType::EDGE_CORNER_MANHATTAN:
+		break;
+	default:
+		break;
+	}
+	return heuristic;
+}
+
+/*
+@param - steps: the number of moves the shuffle function will perform
+This functions will shuffle the cube @{steps} amount of times
+*/
+void Cube::shuffle(int steps)
+{
+	// For random number generator
+	std::random_device rd;
+	std::mt19937 rng(rd());
+	std::uniform_int_distribution<int> uni(0, moveFunctions.size() - 1);
+	for (int i = 0; i < steps; ++i) {
+		//std::cout << (int)uni(rng) << std::endl;
+		(this->*moveFunctions[(int)uni(rng)])();
+	}
+}
+
 void Cube::printCube()
 {
 	std::cout << "--------------- Cube State ---------------" << std::endl;
@@ -295,6 +342,14 @@ Cube::~Cube()
 	delete[] cube;
 }
 
+/*
+@param - a: the first Color by reference
+@param - b: the second Color by reference
+@param - c: the third Color by reference
+@param - d: the fourth Color by reference
+The helper function takes four Colors and performs a roll operation,
+used to rotating a square matrix clockwise by 90 degrees
+*/
 void Cube::cyclicRoll(Color & a, Color & b, Color & c, Color & d)
 {
 	Color tmp = a;
@@ -304,6 +359,11 @@ void Cube::cyclicRoll(Color & a, Color & b, Color & c, Color & d)
 	d = tmp;
 }
 
+/*
+@param - a: the first Color by reference
+@param - b: the second Color by reference
+The helper function takes two Colors by refrence and swaps them
+*/
 void Cube::swap(Color & a, Color & b)
 {
 	Color tmp = a;
@@ -311,8 +371,14 @@ void Cube::swap(Color & a, Color & b)
 	b = tmp;
 }
 
-void Cube::allocateMemory(int cubeSize)
+/* 
+@param - cubeSize: the side length of the cube
+Helper function for the constructor to allocate memory for
+the cube data structure
+*/
+Cube::Color *** Cube::allocateMemory(int cubeSize)
 {
+	Color *** cube;
 	cube = new Color **[NUM_FACES];
 	for (int i = 0; i < NUM_FACES; ++i) {
 		cube[i] = new Color *[cubeSize];
@@ -324,4 +390,26 @@ void Cube::allocateMemory(int cubeSize)
 			}
 		}
 	}
+	return cube;
+}
+
+/*
+The helper function will build a list of all the functions
+that are used to perform rotations on a cube,
+called by the constructors
+*/
+void Cube::buildMoveFunctions()
+{
+	moveFunctions.push_back(&Cube::rotateF);
+	moveFunctions.push_back(&Cube::rotateFPrime);
+	moveFunctions.push_back(&Cube::rotateB);
+	moveFunctions.push_back(&Cube::rotateBPrime);
+	moveFunctions.push_back(&Cube::rotateU);
+	moveFunctions.push_back(&Cube::rotateUPrime);
+	moveFunctions.push_back(&Cube::rotateD);
+	moveFunctions.push_back(&Cube::rotateDPrime);
+	moveFunctions.push_back(&Cube::rotateR);
+	moveFunctions.push_back(&Cube::rotateRPrime);
+	moveFunctions.push_back(&Cube::rotateL);
+	moveFunctions.push_back(&Cube::rotateLPrime);
 }

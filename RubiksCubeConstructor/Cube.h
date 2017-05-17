@@ -1,5 +1,8 @@
 #pragma once
 
+#include <random>
+#include <vector>
+
 #define NUM_FACES 6
 #define NUM_SIDES 4
 
@@ -19,6 +22,13 @@ enum class RelativeDirection
 	RIGHT,
 	TOP,
 	BOTTOM
+};
+
+enum class HeuristicType
+{
+	MISPLACED,
+	TOTAL_MANHATTAN,
+	EDGE_CORNER_MANHATTAN
 };
 
 class Cube
@@ -49,6 +59,9 @@ public:
 	void rotateL();
 	void rotateLPrime();
 
+	int getHeuristic(HeuristicType heuristicType, Cube & goalCube);
+
+	void shuffle(int steps);
 
 	void printCube();
 
@@ -59,10 +72,12 @@ public:
 private:
 	int cubeSize;
 	Color *** cube;
+	std::vector<void(Cube::*) ()> moveFunctions;
 
 	void cyclicRoll(Color & a, Color & b, Color & c, Color & d);
 	void swap(Color & a, Color & b);
 
-	void allocateMemory(int cubeSize);
+	Color *** allocateMemory(int cubeSize);
+	void buildMoveFunctions();
 };
 
