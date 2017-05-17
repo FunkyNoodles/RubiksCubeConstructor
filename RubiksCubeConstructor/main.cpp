@@ -141,8 +141,10 @@ int main(int arg, char ** argv) {
 
 	Cube * goalCube = new Cube(3);
 	Cube * cube = new Cube(3);
-	cube->shuffle(20);
-	std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
+	cube->shuffle(3);
+	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
+	cube->idaStar(*goalCube);
+	std::cout << "Done" << std::endl;
 	while (true)
 	{
 

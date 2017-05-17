@@ -2,6 +2,7 @@
 
 #include <random>
 #include <vector>
+#include <list>
 
 #define NUM_FACES 6
 #define NUM_SIDES 4
@@ -34,6 +35,7 @@ enum class HeuristicType
 class Cube
 {
 public:
+	int f = 0, g = 0;
 	enum Color {
 		COLOR0,
 		COLOR1,
@@ -42,8 +44,14 @@ public:
 		COLOR4,
 		COLOR5
 	};
+
 	Cube(int cubeSize);
-	Cube(Cube & cube);
+	Cube(const Cube & cube);
+
+	bool isSolved();
+
+	// Overloads
+	bool operator==(const Cube & cube);
 
 	// Rotations
 	void rotateF();
@@ -59,14 +67,17 @@ public:
 	void rotateL();
 	void rotateLPrime();
 
+	// Search
 	int getHeuristic(HeuristicType heuristicType, Cube & goalCube);
+	void aStar(Cube & goalState);
+	void idaStar(Cube & goalState);
 
 	void shuffle(int steps);
 
 	void printCube();
 
-	int getCubeSize();
-	Color *** getCube();
+	int getCubeSize() const;
+	Color *** getCube() const;
 	~Cube();
 
 private:
@@ -76,6 +87,10 @@ private:
 
 	void cyclicRoll(Color & a, Color & b, Color & c, Color & d);
 	void swap(Color & a, Color & b);
+
+	std::vector<Cube> buildSuccessors(const Cube & c);
+
+	int idaStarSearch(Cube & cur, int bound, Cube & goalState);
 
 	Color *** allocateMemory(int cubeSize);
 	void buildMoveFunctions();

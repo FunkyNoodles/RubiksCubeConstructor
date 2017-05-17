@@ -3,7 +3,20 @@
 #include <iostream>
 #include <random>
 #include <math.h>
+#include <queue>
+#include <unordered_map>
 
+#define FOUND -1
+#define MAX_STEPS 200 // It shouldn't take more than 200 steps to solve a 3by3 cube
+
+std::vector<int> idaMoves;
+long nodesExpanded = 0;
+
+struct CubeCostCompare {
+	inline bool operator() (const Cube & o1, const Cube & o2) {
+		return (o1.f < o2.f);
+	}
+};
 
 Cube::Cube(int cubeSize)
 {
@@ -12,8 +25,10 @@ Cube::Cube(int cubeSize)
 	buildMoveFunctions();
 }
 
-Cube::Cube(Cube & c)
+Cube::Cube(const Cube & c)
 {
+	this->g = c.g;
+	this->f = c.f;
 	this->cubeSize = c.getCubeSize();
 	cube = allocateMemory(cubeSize);
 	buildMoveFunctions();
@@ -24,6 +39,35 @@ Cube::Cube(Cube & c)
 			}
 		}
 	}
+}
+
+bool Cube::isSolved()
+{
+	for (int i = 0; i < NUM_FACES; ++i) {
+		Cube::Color tmp = cube[i][0][0];
+		for (int j = 0; j < cubeSize; ++j) {
+			for (int k = 0; k < cubeSize; ++k) {
+				if (cube[i][j][k] != tmp) {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+bool Cube::operator==(const Cube & cube)
+{
+	for (int i = 0; i < NUM_FACES; ++i) {
+		for (int j = 0; j < cubeSize; ++j) {
+			for (int k = 0; k < cubeSize; ++k) {
+				if (this->cube[i][j][k] != cube.getCube()[i][j][k]) {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
 }
 
 void Cube::rotateF()
@@ -269,6 +313,41 @@ int Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
 	return heuristic;
 }
 
+void Cube::aStar(Cube & goalState)
+{
+	/*std::priority_queue<Cube, std::vector<Cube>, CubeCostCompare> openSet;
+	std::unordered_map<Cube, bool> closedSet;
+
+	while (!openSet.empty()) {
+		Cube current = openSet.top();
+		if (current.isSolved()) {
+			return;
+		}
+		openSet.pop();
+
+	}*/
+}
+
+void Cube::idaStar(Cube & goalState)
+{
+	int bound = getHeuristic(HeuristicType::MISPLACED, goalState);
+	//bound = 20;
+	while (true) {
+		int t = idaStarSearch(*this, bound, goalState);
+		//std::cout << t << std::endl;
+		if (t == FOUND) {
+			std::cout << "Move number: " << idaMoves.size() << std::endl;
+			std::cout << "Nodes expanded: " << nodesExpanded << std::endl;
+			for (int i = 0; i < idaMoves.size(); i++) {
+				std::cout << idaMoves[i] << std::endl;
+			}
+			return;
+		}
+		bound = t;
+	}
+	
+}
+
 /*
 @param - steps: the number of moves the shuffle function will perform
 This functions will shuffle the cube @{steps} amount of times
@@ -281,7 +360,9 @@ void Cube::shuffle(int steps)
 	std::uniform_int_distribution<int> uni(0, moveFunctions.size() - 1);
 	for (int i = 0; i < steps; ++i) {
 		//std::cout << (int)uni(rng) << std::endl;
-		(this->*moveFunctions[(int)uni(rng)])();
+		int move = (int)uni(rng);
+		std::cout << move << std::endl;
+		(this->*moveFunctions[move])();
 	}
 }
 
@@ -321,12 +402,12 @@ void Cube::printCube()
 	}
 }
 
-int Cube::getCubeSize()
+int Cube::getCubeSize() const
 {
 	return this->cubeSize;
 }
 
-Cube::Color *** Cube::getCube()
+Cube::Color *** Cube::getCube() const
 {
 	return cube;
 }
@@ -369,6 +450,47 @@ void Cube::swap(Color & a, Color & b)
 	Color tmp = a;
 	a = b;
 	b = tmp;
+}
+
+std::vector<Cube> Cube::buildSuccessors(const Cube & c)
+{
+	std::vector<Cube> successors;
+	for (int i = 0; i < moveFunctions.size(); ++i) {
+		// Create a new cube and rotate it once with a rotation
+		Cube s(c);
+		s.g = s.g + 1;
+		(s.*moveFunctions[i])();
+		successors.push_back(s);
+	}
+	return successors;
+}
+
+int Cube::idaStarSearch(Cube & cur, int bound, Cube & goalState)
+{
+	int f = cur.g + getHeuristic(HeuristicType::MISPLACED, goalState);
+	if (f > bound) {
+		return f;
+	}
+	if (cur.isSolved()) {
+		return FOUND;
+	}
+	int min = MAX_STEPS;
+	std::vector<Cube> successors = buildSuccessors(cur);
+	for (int i = 0; i < successors.size(); ++i) {
+		Cube s = successors[i];
+		//std::cout << s.g << std::endl;
+		idaMoves.push_back(i);
+		++nodesExpanded;
+		int t = idaStarSearch(s, bound, goalState);
+		if (t == FOUND) {
+			return FOUND;
+		}
+		idaMoves.pop_back();
+		if (t < min) {
+			min = t;
+		}
+	}
+	return min;
 }
 
 /* 
