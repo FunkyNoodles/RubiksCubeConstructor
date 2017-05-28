@@ -35,7 +35,9 @@ enum class HeuristicType
 class Cube
 {
 public:
-	int f = 0, g = 0;
+	float f = 0.0;
+	int g = 0;
+	int moveToGetHere = 0;
 	enum Color {
 		COLOR0,
 		COLOR1,
@@ -52,6 +54,7 @@ public:
 
 	// Overloads
 	bool operator==(const Cube & cube) const;
+	Cube & operator=(const Cube & cube);
 
 	// Rotations
 	void rotateF();
@@ -68,7 +71,7 @@ public:
 	void rotateLPrime();
 
 	// Search
-	int getHeuristic(HeuristicType heuristicType, Cube & goalCube);
+	float getHeuristic(HeuristicType heuristicType, Cube & goalCube);
 	void aStar(Cube & goalState);
 	void idaStar(Cube & goalState);
 

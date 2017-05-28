@@ -161,67 +161,74 @@ static void drawSquares(cv::Mat& image, const std::vector<std::vector<cv::Point>
 
 int main(int arg, char ** argv) {
 
-	//Cube * goalCube = new Cube(3);
-	//Cube * cube = new Cube(3);
+	Cube * goalCube = new Cube(2);
+	Cube * cube = new Cube(2);
+	//std::cout << cube->isSolved() << std::endl;
 	//cube->shuffle(3);
-	////std::cout << "Test: " << (*cube == *goalCube) << std::endl;
-	////std::cout << sizeof(size_t) << " bytes" << std::endl;
-	////std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
-	//cube->aStar(*goalCube);
-	//std::cout << "Done" << std::endl;
+	cube->rotateB();
+	cube->rotateF();
+	cube->rotateU();
+	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube);
+	//std::cout << cube->isSolved() << std::endl;
+	//std::cout << "Test: " << (*cube == *goalCube) << std::endl;
+	//std::cout << sizeof(size_t) << " bytes" << std::endl;
+	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
+	cube->aStar(*goalCube);
+	delete cube, goalCube;
+	std::cout << "Done" << std::endl;
 	//return 0 ;
-	//while (true)
-	//{
-
-	//}
-	char keyIn;
-
-	cv::VideoCapture cam(0);
-
-	cv::Size camS = cv::Size((int)cam.get(cv::CAP_PROP_FRAME_WIDTH), (int)cam.get(cv::CAP_PROP_FRAME_HEIGHT));
-	int ex = static_cast<int>(cam.get(cv::CAP_PROP_FOURCC));
-
-	// Windows
-	cv::namedWindow(WIN_VIDEO, cv::WINDOW_AUTOSIZE);
-	cv::moveWindow(WIN_VIDEO, 0, 0);
-	cv::namedWindow(WIN_TEST, cv::WINDOW_AUTOSIZE);
-	cv::moveWindow(WIN_TEST, 660, 0);
-	cv::namedWindow(WIN_TEST1, cv::WINDOW_AUTOSIZE);
-	cv::moveWindow(WIN_TEST1, 1220, 0);
-	
-
-	cv::Mat curFrame, curFrameGray, curFrameBlurred, curGrad;
-
-	int scale = 1, delta = 0, ddepth = CV_16S;
-
-	cv::Mat kernelDilation = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7, 7));
-
 	while (true)
 	{
-		cam >> curFrame;
-		if (curFrame.empty())
-		{
-			std::cout << "No input";
-			break;
-		}
 
-		//dilate(curGrad, curGrad, kernelDilation);
-
-		//imshow(WIN_TEST, curGrad);
-
-		std::vector<std::vector<cv::Point> > squares;
-
-		findSquares(curFrame, squares);
-		drawSquares(curFrame, squares);
-
-		
-
-		keyIn = (char)cv::waitKey(1);
-		if (keyIn == 27)
-		{
-			break;
-		}
 	}
+	//char keyIn;
+
+	//cv::VideoCapture cam(0);
+
+	//cv::Size camS = cv::Size((int)cam.get(cv::CAP_PROP_FRAME_WIDTH), (int)cam.get(cv::CAP_PROP_FRAME_HEIGHT));
+	//int ex = static_cast<int>(cam.get(cv::CAP_PROP_FOURCC));
+
+	//// Windows
+	//cv::namedWindow(WIN_VIDEO, cv::WINDOW_AUTOSIZE);
+	//cv::moveWindow(WIN_VIDEO, 0, 0);
+	//cv::namedWindow(WIN_TEST, cv::WINDOW_AUTOSIZE);
+	//cv::moveWindow(WIN_TEST, 660, 0);
+	//cv::namedWindow(WIN_TEST1, cv::WINDOW_AUTOSIZE);
+	//cv::moveWindow(WIN_TEST1, 1220, 0);
+	//
+
+	//cv::Mat curFrame, curFrameGray, curFrameBlurred, curGrad;
+
+	//int scale = 1, delta = 0, ddepth = CV_16S;
+
+	//cv::Mat kernelDilation = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7, 7));
+
+	//while (true)
+	//{
+	//	cam >> curFrame;
+	//	if (curFrame.empty())
+	//	{
+	//		std::cout << "No input";
+	//		break;
+	//	}
+
+	//	//dilate(curGrad, curGrad, kernelDilation);
+
+	//	//imshow(WIN_TEST, curGrad);
+
+	//	std::vector<std::vector<cv::Point> > squares;
+
+	//	findSquares(curFrame, squares);
+	//	drawSquares(curFrame, squares);
+
+	//	
+
+	//	keyIn = (char)cv::waitKey(1);
+	//	if (keyIn == 27)
+	//	{
+	//		break;
+	//	}
+	//}
 
 	return 0;
 }

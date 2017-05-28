@@ -15,7 +15,7 @@ long nodesExpanded = 0;
 
 struct CubeCostCompare {
 	inline bool operator() (const Cube & o1, const Cube & o2) {
-		return (o1.f < o2.f);
+		return (o1.f > o2.f);
 	}
 };
 
@@ -30,14 +30,12 @@ Cube::Cube(const Cube & c)
 {
 	this->g = c.g;
 	this->f = c.f;
+	this->moveToGetHere = c.moveToGetHere;
 	this->cubeSize = c.getCubeSize();
 	cube = allocateMemory(cubeSize);
 	buildMoveFunctions();
 
-	std::cout << "Copied" << std::endl;
-	if (c.getCube()[0] == 0) {
-		std::cout << c.getCube()[0] << std::endl;
-	}
+	//std::cout << "Copied" << std::endl;
 	for (int i = 0; i < NUM_FACES; ++i) {
 		for (int j = 0; j < cubeSize; ++j) {
 			for (int k = 0; k < cubeSize; ++k) {
@@ -78,6 +76,25 @@ bool Cube::operator==(const Cube & cube) const
 		}
 	}
 	return true;
+}
+
+Cube & Cube::operator=(const Cube & cube)
+{
+	this->g = cube.g;
+	this->f = cube.f;
+	this->moveToGetHere = cube.moveToGetHere;
+	this->cubeSize = cube.getCubeSize();
+	this->cube = allocateMemory(cubeSize);
+	buildMoveFunctions();
+
+	for (int i = 0; i < NUM_FACES; ++i) {
+		for (int j = 0; j < cubeSize; ++j) {
+			for (int k = 0; k < cubeSize; ++k) {
+				this->cube[i][j][k] = cube.getCube()[i][j][k];
+			}
+		}
+	}
+	return *this;
 }
 
 void Cube::rotateF()
@@ -296,9 +313,9 @@ void Cube::rotateLPrime()
 	rotateL();
 }
 
-int Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
+float Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
 {
-	int heuristic = 0;
+	float heuristic = 0;
 	switch (heuristicType)
 	{
 	case HeuristicType::MISPLACED:
@@ -311,7 +328,8 @@ int Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
 				}
 			}
 		}
-		heuristic = ceil((float)heuristic / 21);
+		//heuristic = ceil((float)heuristic / 8);
+		heuristic = (float)heuristic / 4;
 		break;
 	case HeuristicType::TOTAL_MANHATTAN:
 		break;
@@ -335,14 +353,22 @@ void Cube::aStar(Cube & goalState)
 	while (!openQueue.empty()) {
 		Cube current = openQueue.top();
 		if (current.isSolved()) {
+			closedSet.insert(current);
+			// Print solution
+			std::cout << "Solution" << std::endl;
+			for (Cube c : closedSet) {
+				c.printCube();
+			}
 			return;
 		}
+		std::cout << "Expanded: " << current.g << std::endl;
 		openQueue.pop();
 		openSet.erase(current);
 		closedSet.insert(current);
 		std::vector<Cube> successors = buildSuccessors(current);
 		for (int i = 0; i < successors.size(); ++i) {
 			Cube s = successors[i];
+			//s.printCube();
 			//std::cout << s.g << std::endl;
 			if (closedSet.count(s) != 0) {
 				// The state has already been visited
@@ -351,16 +377,16 @@ void Cube::aStar(Cube & goalState)
 			int tentativeG = current.g + 1;
 			if (openSet.count(s) == 0) {
 				// Found a new state
-				s.printCube();
+				s.g = tentativeG;
+				s.f = s.g + s.getHeuristic(HeuristicType::MISPLACED, goalState);
 				openSet.insert(s);
 				openQueue.push(s);
 			}
 			else if (tentativeG >= s.g) {
 				continue;
 			}
-			std::cout << "Move: " <<  i << std::endl;
-			s.g = tentativeG;
-			s.f = s.g + s.getHeuristic(HeuristicType::MISPLACED, goalState);
+			//std::cout << "Move: " <<  i << std::endl;
+			
 		}
 	}
 }
@@ -501,6 +527,7 @@ std::vector<Cube> Cube::buildSuccessors(const Cube & c)
 		// Create a new cube and rotate it once with a rotation
 		Cube s(c);
 		s.g = s.g + 1;
+		s.moveToGetHere = i;
 		(s.*moveFunctions[i])();
 		successors.push_back(s);
 	}
