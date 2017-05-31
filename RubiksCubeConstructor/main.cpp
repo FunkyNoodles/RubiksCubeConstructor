@@ -1,3 +1,4 @@
+#ifdef  CV_MAJOR_VERSION
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -13,12 +14,18 @@
 //#include <opencv2/core/private.cuda.hpp>
 #include <opencv2/core/cuda_types.hpp>
 #include <opencv2/photo/cuda.hpp>
+#endif //  CV_MAJOR_VERSION
+
+
 
 #include <iostream>
 #include <chrono>
 #include <vector>
 
 #include "Cube.h"
+
+
+#ifdef  CV_MAJOR_VERSION
 
 const char * WIN_VIDEO = "Video Feed";
 const char * WIN_TEST = "Test";
@@ -159,21 +166,28 @@ static void drawSquares(cv::Mat& image, const std::vector<std::vector<cv::Point>
 	imshow(WIN_TEST, image);
 }
 
+#endif //  CV_MAJOR_VERSION
+
 int main(int arg, char ** argv) {
 
-	Cube * goalCube = new Cube(2);
-	Cube * cube = new Cube(2);
+	Cube * goalCube = new Cube(3);
+	Cube * cube = new Cube(3);
+	//cube->printCubeCoords();
 	//std::cout << cube->isSolved() << std::endl;
-	//cube->shuffle(3);
-	cube->rotateB();
-	cube->rotateF();
-	cube->rotateU();
+	//cube->shuffle(4);
+	cube->rotateL();
+	cube->rotateR();
+	cube->rotateBPrime();
+	cube->rotateLPrime();
+	//cube->rotateB();
+	//cube->rotateF();
+	//cube->rotateU();
 	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube);
 	//std::cout << cube->isSolved() << std::endl;
 	//std::cout << "Test: " << (*cube == *goalCube) << std::endl;
 	//std::cout << sizeof(size_t) << " bytes" << std::endl;
 	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
-	cube->aStar(*goalCube);
+	//cube->aStar(*goalCube);
 	delete cube, goalCube;
 	std::cout << "Done" << std::endl;
 	//return 0 ;

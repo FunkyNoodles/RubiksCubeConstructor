@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <random>
 #include <vector>
 #include <list>
@@ -47,6 +48,31 @@ public:
 		COLOR5
 	};
 
+	class Coord {
+	public:
+		int x, y, z;
+		Coord() {
+			this->x = 0;
+			this->y = 0;
+			this->z = 0;
+		}
+		Coord(int x, int y, int z) {
+			this->x = x;
+			this->y = y;
+			this->z = z;
+		}
+		
+		void setCoord(int x, int y, int z) {
+			this->x = x;
+			this->y = y;
+			this->z = z;
+		}
+
+		void printCoord() {
+			std::cout << "(" << x << ", " << y << ", " << z << ")" << std::flush;
+		}
+	};
+
 	Cube(int cubeSize);
 	Cube(const Cube & cube);
 
@@ -54,6 +80,7 @@ public:
 
 	// Overloads
 	bool operator==(const Cube & cube) const;
+	bool operator<(const Cube & cube) const;
 	Cube & operator=(const Cube & cube);
 
 	// Rotations
@@ -78,6 +105,7 @@ public:
 	void shuffle(int steps);
 
 	void printCube();
+	void printCubeCoords();
 
 	int getCubeSize() const;
 	Color *** getCube() const;
@@ -87,6 +115,8 @@ private:
 	int cubeSize;
 	Color *** cube;
 	std::vector<void(Cube::*) ()> moveFunctions;
+
+	Cube::Coord getCoord(int x, int y, int z);
 
 	void cyclicRoll(Color & a, Color & b, Color & c, Color & d);
 	void swap(Color & a, Color & b);

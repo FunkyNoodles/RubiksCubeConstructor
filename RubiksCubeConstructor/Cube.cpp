@@ -1,11 +1,12 @@
 #include "Cube.h"
 
-#include <iostream>
 #include <random>
 #include <math.h>
 #include <queue>
 #include <unordered_map>
+#include <set>
 #include <unordered_set>
+#include <algorithm>
 
 #define FOUND -1
 #define MAX_STEPS 200 // It shouldn't take more than 200 steps to solve a 3by3 cube
@@ -76,6 +77,11 @@ bool Cube::operator==(const Cube & cube) const
 		}
 	}
 	return true;
+}
+
+bool Cube::operator<(const Cube & cube) const
+{
+	return this->f < cube.f;
 }
 
 Cube & Cube::operator=(const Cube & cube)
@@ -329,7 +335,7 @@ float Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
 			}
 		}
 		//heuristic = ceil((float)heuristic / 8);
-		heuristic = (float)heuristic / 4;
+		heuristic = (float)heuristic / 128;
 		break;
 	case HeuristicType::TOTAL_MANHATTAN:
 		break;
@@ -345,7 +351,7 @@ void Cube::aStar(Cube & goalState)
 {
 	std::priority_queue<Cube, std::vector<Cube>, CubeCostCompare> openQueue;
 	std::unordered_set<Cube> openSet;
-	std::unordered_set<Cube> closedSet;
+	std::vector<Cube> closedSet;
 
 	openSet.insert(*this);
 	openQueue.push(*this);
@@ -353,24 +359,25 @@ void Cube::aStar(Cube & goalState)
 	while (!openQueue.empty()) {
 		Cube current = openQueue.top();
 		if (current.isSolved()) {
-			closedSet.insert(current);
+			closedSet.push_back(current);
 			// Print solution
-			std::cout << "Solution" << std::endl;
+			std::cout << "Solution:" << std::endl;
 			for (Cube c : closedSet) {
 				c.printCube();
 			}
+			std::cout << "Took " << closedSet.size() - 1 << " moves" << std::endl;
 			return;
 		}
 		std::cout << "Expanded: " << current.g << std::endl;
 		openQueue.pop();
 		openSet.erase(current);
-		closedSet.insert(current);
+		closedSet.push_back(current);
 		std::vector<Cube> successors = buildSuccessors(current);
 		for (int i = 0; i < successors.size(); ++i) {
 			Cube s = successors[i];
 			//s.printCube();
 			//std::cout << s.g << std::endl;
-			if (closedSet.count(s) != 0) {
+			if (std::find(closedSet.begin(), closedSet.end(), s) != closedSet.end()) {
 				// The state has already been visited
 				continue;
 			}
@@ -467,6 +474,45 @@ void Cube::printCube()
 	}
 }
 
+void Cube::printCubeCoords()
+{
+	std::cout << "--------------- Cube State (Coords) ---------------" << std::endl;
+	// First face
+	for (int i = 0; i < cubeSize; ++i) {
+		for (int j = 0; j < cubeSize + 1; ++j) {
+			std::cout << " ";
+		}
+		for (int j = 0; j < cubeSize; ++j) {
+			Coord coord = getCoord(4, i, j);
+			coord.printCoord();
+		}
+		std::cout << std::endl;
+	}
+	// Four faces
+	for (int i = 0; i < cubeSize; ++i) {
+		for (int j = 0; j < cubeSize * NUM_SIDES; ++j) {
+			if (j > 0 && j % cubeSize == 0) {
+				std::cout << " ";
+			}
+			int cubeIndex = (j / 3 + 3) % NUM_SIDES;
+			Coord coord = getCoord(cubeIndex, i, j % cubeSize);
+			coord.printCoord();
+		}
+		std::cout << std::endl;
+	}
+	// Last face
+	for (int i = 0; i < cubeSize; ++i) {
+		for (int j = 0; j < cubeSize + 1; ++j) {
+			std::cout << " ";
+		}
+		for (int j = 0; j < cubeSize; ++j) {
+			Coord coord = getCoord(5, i, j);
+			coord.printCoord();
+		}
+		std::cout << std::endl;
+	}
+}
+
 int Cube::getCubeSize() const
 {
 	return this->cubeSize;
@@ -489,6 +535,39 @@ Cube::~Cube()
 	}
 	delete[] cube;
 	cube = nullptr;
+}
+
+/*
+@param - face: the face(0th) index of cube struct
+@param - row: the row(1st) index of cube struct
+@param - col: the col(2nd) index of cube struct
+Maps each color in the cube struct to a 3-D space,
+easier to calculate Manhattan heuristic
+*/
+Cube::Coord Cube::getCoord(int face, int row, int col)
+{
+	Coord coord;
+	switch (face) {
+	case static_cast<int>(AbsoluteDirection::FRONT):
+		coord.setCoord(col, 0, cubeSize - row - 1);
+		break;
+	case static_cast<int>(AbsoluteDirection::BACK):
+		coord.setCoord(cubeSize - col - 1, cubeSize - 1, cubeSize - row - 1);
+		break;
+	case static_cast<int>(AbsoluteDirection::LEFT):
+		coord.setCoord(0, cubeSize - col - 1, cubeSize - row - 1);
+		break;
+	case static_cast<int>(AbsoluteDirection::RIGHT):
+		coord.setCoord(cubeSize - 1, col, cubeSize - row - 1);
+		break;
+	case static_cast<int>(AbsoluteDirection::TOP):
+		coord.setCoord(col, cubeSize - row - 1, cubeSize - 1);
+		break;
+	case static_cast<int>(AbsoluteDirection::BOTTOM):
+		coord.setCoord(col, row, 0);
+		break;
+	}
+	return coord;
 }
 
 /*
@@ -520,6 +599,10 @@ void Cube::swap(Color & a, Color & b)
 	b = tmp;
 }
 
+/*
+@param - c: the starting cube by reference
+The helper function will give all possible next states of the cube passed in
+*/
 std::vector<Cube> Cube::buildSuccessors(const Cube & c)
 {
 	std::vector<Cube> successors;
