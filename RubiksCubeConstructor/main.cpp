@@ -176,9 +176,13 @@ int main(int arg, char ** argv) {
 	//std::cout << cube->isSolved() << std::endl;
 	//cube->shuffle(4);
 	cube->rotateL();
+	cube->printCube();
 	cube->rotateR();
+	cube->printCube();
 	cube->rotateBPrime();
+	cube->printCube();
 	cube->rotateLPrime();
+	cube->printCube();
 	//cube->rotateB();
 	//cube->rotateF();
 	//cube->rotateU();
@@ -187,7 +191,7 @@ int main(int arg, char ** argv) {
 	//std::cout << "Test: " << (*cube == *goalCube) << std::endl;
 	//std::cout << sizeof(size_t) << " bytes" << std::endl;
 	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
-	//cube->aStar(*goalCube);
+	cube->aStar(*goalCube);
 	delete cube, goalCube;
 	std::cout << "Done" << std::endl;
 	//return 0 ;

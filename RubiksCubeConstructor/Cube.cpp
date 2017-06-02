@@ -335,9 +335,10 @@ float Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
 			}
 		}
 		//heuristic = ceil((float)heuristic / 8);
-		heuristic = (float)heuristic / 128;
+		heuristic = (float)heuristic / 16;
 		break;
 	case HeuristicType::TOTAL_MANHATTAN:
+
 		break;
 	case HeuristicType::EDGE_CORNER_MANHATTAN:
 		break;
@@ -358,6 +359,8 @@ void Cube::aStar(Cube & goalState)
 
 	while (!openQueue.empty()) {
 		Cube current = openQueue.top();
+		/*std::cout << "Current cube" << std::endl;
+		current.printCube();*/
 		if (current.isSolved()) {
 			closedSet.push_back(current);
 			// Print solution
@@ -393,7 +396,8 @@ void Cube::aStar(Cube & goalState)
 				continue;
 			}
 			//std::cout << "Move: " <<  i << std::endl;
-			
+			//s.g = tentativeG;
+			//s.f = s.g + s.getHeuristic(HeuristicType::MISPLACED, goalState);
 		}
 	}
 }
@@ -609,7 +613,7 @@ std::vector<Cube> Cube::buildSuccessors(const Cube & c)
 	for (int i = 0; i < moveFunctions.size(); ++i) {
 		// Create a new cube and rotate it once with a rotation
 		Cube s(c);
-		s.g = s.g + 1;
+		//s.g = s.g + 1;
 		s.moveToGetHere = i;
 		(s.*moveFunctions[i])();
 		successors.push_back(s);
