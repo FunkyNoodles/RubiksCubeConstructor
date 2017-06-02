@@ -174,15 +174,7 @@ int main(int arg, char ** argv) {
 	Cube * cube = new Cube(3);
 	//cube->printCubeCoords();
 	//std::cout << cube->isSolved() << std::endl;
-	//cube->shuffle(4);
-	cube->rotateL();
-	cube->printCube();
-	cube->rotateR();
-	cube->printCube();
-	cube->rotateBPrime();
-	cube->printCube();
-	cube->rotateLPrime();
-	cube->printCube();
+	cube->shuffle(5);
 	//cube->rotateB();
 	//cube->rotateF();
 	//cube->rotateU();

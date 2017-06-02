@@ -38,7 +38,8 @@ class Cube
 public:
 	float f = 0.0;
 	int g = 0;
-	int moveToGetHere = 0;
+	int moveToGetHere = -1;
+	Cube * cameFrom = nullptr;
 	enum Color {
 		COLOR0,
 		COLOR1,
@@ -121,7 +122,7 @@ private:
 	void cyclicRoll(Color & a, Color & b, Color & c, Color & d);
 	void swap(Color & a, Color & b);
 
-	std::vector<Cube> buildSuccessors(const Cube & c);
+	std::vector<Cube> buildSuccessors(Cube & c);
 
 	int idaStarSearch(Cube & cur, int bound, Cube & goalState);
 

@@ -32,6 +32,7 @@ Cube::Cube(const Cube & c)
 	this->g = c.g;
 	this->f = c.f;
 	this->moveToGetHere = c.moveToGetHere;
+	this->cameFrom = c.cameFrom;
 	this->cubeSize = c.getCubeSize();
 	cube = allocateMemory(cubeSize);
 	buildMoveFunctions();
@@ -89,6 +90,7 @@ Cube & Cube::operator=(const Cube & cube)
 	this->g = cube.g;
 	this->f = cube.f;
 	this->moveToGetHere = cube.moveToGetHere;
+	this->cameFrom = cube.cameFrom;
 	this->cubeSize = cube.getCubeSize();
 	this->cube = allocateMemory(cubeSize);
 	buildMoveFunctions();
@@ -365,13 +367,20 @@ void Cube::aStar(Cube & goalState)
 			closedSet.push_back(current);
 			// Print solution
 			std::cout << "Solution:" << std::endl;
-			for (Cube c : closedSet) {
-				c.printCube();
+			int moveCounter = -1;
+			int moveToGetHere = current.moveToGetHere;
+			Cube * traceBack = &current;
+			while (traceBack != nullptr) {
+				/*int reverseMove = (moveToGetHere % 2 == 0) ? (moveToGetHere + 1) : (moveToGetHere - 1);
+				(current.*moveFunctions[reverseMove])();*/
+				traceBack->printCube();
+				traceBack = traceBack->cameFrom;
+				++moveCounter;
 			}
-			std::cout << "Took " << closedSet.size() - 1 << " moves" << std::endl;
+			std::cout << "Took " << moveCounter << " moves" << std::endl;
 			return;
 		}
-		std::cout << "Expanded: " << current.g << std::endl;
+		//std::cout << "Expanded: " << current.g << std::endl;
 		openQueue.pop();
 		openSet.erase(current);
 		closedSet.push_back(current);
@@ -539,6 +548,9 @@ Cube::~Cube()
 	}
 	delete[] cube;
 	cube = nullptr;
+	if (cameFrom != nullptr) {
+		//cameFrom = nullptr;
+	}
 }
 
 /*
@@ -607,7 +619,7 @@ void Cube::swap(Color & a, Color & b)
 @param - c: the starting cube by reference
 The helper function will give all possible next states of the cube passed in
 */
-std::vector<Cube> Cube::buildSuccessors(const Cube & c)
+std::vector<Cube> Cube::buildSuccessors(Cube & c)
 {
 	std::vector<Cube> successors;
 	for (int i = 0; i < moveFunctions.size(); ++i) {
@@ -615,6 +627,7 @@ std::vector<Cube> Cube::buildSuccessors(const Cube & c)
 		Cube s(c);
 		//s.g = s.g + 1;
 		s.moveToGetHere = i;
+		s.cameFrom = new Cube(c);
 		(s.*moveFunctions[i])();
 		successors.push_back(s);
 	}
