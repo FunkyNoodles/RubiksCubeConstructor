@@ -1,4 +1,3 @@
-#ifdef  CV_MAJOR_VERSION
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -11,12 +10,8 @@
 #include <opencv2/cudafilters.hpp>
 #include <opencv2/cudacodec.hpp>
 #include <opencv2/core/cuda.hpp>
-//#include <opencv2/core/private.cuda.hpp>
 #include <opencv2/core/cuda_types.hpp>
 #include <opencv2/photo/cuda.hpp>
-#endif //  CV_MAJOR_VERSION
-
-
 
 #include <iostream>
 #include <chrono>
@@ -24,8 +19,7 @@
 
 #include "Cube.h"
 
-
-#ifdef  CV_MAJOR_VERSION
+const bool DEBUG_CUBE = false;
 
 const char * WIN_VIDEO = "Video Feed";
 const char * WIN_TEST = "Test";
@@ -65,7 +59,7 @@ void colorReduce(cv::Mat& image, int div = 64)
 
 // returns sequence of squares detected on the image.
 // the sequence is stored in the specified memory storage
-static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point> >& squares)
+static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point> >& squares, std::vector<cv::Point>& centers)
 {
 	squares.clear();
 
@@ -89,14 +83,14 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 	for (int c = 1; c < 3; ++c){
 		
 		hsvChannels[c].copyTo(gray0);
-		cv::imshow(WIN_TEST1, gray0);
+		//cv::imshow(WIN_TEST1, gray0);
 	
 		// Denoise using cuda
 		//hsvChannels[1].copyTo(gray0);
-		cv::cuda::GpuMat gray0Device, gray0DeviceDst;
+		/*cv::cuda::GpuMat gray0Device, gray0DeviceDst;
 		gray0Device.upload(gray0);
 		cv::cuda::fastNlMeansDenoising(gray0Device, gray0DeviceDst, 10);
-		gray0DeviceDst.download(gray0);
+		gray0DeviceDst.download(gray0);*/
 
 	
 	
@@ -145,8 +139,12 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 				// if cosines of all angles are small
 				// (all angles are ~90 degree) then write quandrange
 				// vertices to resultant sequence
-				//if (maxCosine < 0.5)
+				if (maxCosine < 0.5) {
 					squares.push_back(approx);
+					cv::Moments moment = cv::moments(cv::Mat(contours[i]));
+					double area = moment.m00;
+					centers.push_back(cv::Point(moment.m10 / area, moment.m01 / area));
+				}
 			}
 		}
 	}
@@ -154,91 +152,92 @@ static void findSquares(const cv::Mat & image, std::vector<std::vector<cv::Point
 
 
 // the function draws all the squares in the image
-static void drawSquares(cv::Mat& image, const std::vector<std::vector<cv::Point> >& squares)
+static void drawSquares(cv::Mat& image, const std::vector<std::vector<cv::Point> >& squares, std::vector<cv::Point>& centers)
 {
 	for (size_t i = 0; i < squares.size(); i++)
 	{
 		const cv::Point* p = &squares[i][0];
 		int n = (int)squares[i].size();
 		polylines(image, &p, &n, 1, true, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
+		cv::circle(image, centers[i], 5, cv::Scalar(255, 0, 0));
 	}
 
 	imshow(WIN_TEST, image);
 }
 
-#endif //  CV_MAJOR_VERSION
-
 int main(int arg, char ** argv) {
 
-	Cube * goalCube = new Cube(3);
-	Cube * cube = new Cube(3);
-	//cube->printCubeCoords();
-	//std::cout << cube->isSolved() << std::endl;
-	cube->shuffle(5);
-	//cube->rotateB();
-	//cube->rotateF();
-	//cube->rotateU();
-	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube);
-	//std::cout << cube->isSolved() << std::endl;
-	//std::cout << "Test: " << (*cube == *goalCube) << std::endl;
-	//std::cout << sizeof(size_t) << " bytes" << std::endl;
-	//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
-	cube->aStar(*goalCube);
-	delete cube, goalCube;
-	std::cout << "Done" << std::endl;
-	//return 0 ;
+	if (DEBUG_CUBE)
+	{
+		Cube * goalCube = new Cube(3);
+		Cube * cube = new Cube(3);
+		//cube->printCubeCoords();
+		//std::cout << cube->isSolved() << std::endl;
+		cube->shuffle(3);
+		//cube->rotateB();
+		//cube->rotateF();
+		//cube->rotateU();
+		//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube);
+		//std::cout << cube->isSolved() << std::endl;
+		//std::cout << "Test: " << (*cube == *goalCube) << std::endl;
+		//std::cout << sizeof(size_t) << " bytes" << std::endl;
+		//std::cout << cube->getHeuristic(HeuristicType::MISPLACED, *goalCube) << std::endl;
+		cube->aStar(*goalCube);
+		delete cube, goalCube;
+		std::cout << "Done" << std::endl;
+		//return 0 ;
+		while (true)
+		{
+
+		}
+	}
+	char keyIn;
+
+	cv::VideoCapture cam(0);
+
+	cv::Size camS = cv::Size((int)cam.get(cv::CAP_PROP_FRAME_WIDTH), (int)cam.get(cv::CAP_PROP_FRAME_HEIGHT));
+	int ex = static_cast<int>(cam.get(cv::CAP_PROP_FOURCC));
+
+	// Windows
+	cv::namedWindow(WIN_VIDEO, cv::WINDOW_AUTOSIZE);
+	cv::moveWindow(WIN_VIDEO, 0, 0);
+	cv::namedWindow(WIN_TEST, cv::WINDOW_AUTOSIZE);
+	cv::moveWindow(WIN_TEST, 660, 0);
+	cv::namedWindow(WIN_TEST1, cv::WINDOW_AUTOSIZE);
+	cv::moveWindow(WIN_TEST1, 1220, 0);
+	
+
+	cv::Mat curFrame, curFrameGray, curFrameBlurred, curGrad;
+
+	int scale = 1, delta = 0, ddepth = CV_16S;
+
+	cv::Mat kernelDilation = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7, 7));
+
 	while (true)
 	{
+		cam >> curFrame;
+		if (curFrame.empty())
+		{
+			std::cout << "No input";
+			break;
+		}
 
+		//dilate(curGrad, curGrad, kernelDilation);
+
+		//imshow(WIN_TEST, curGrad);
+
+		std::vector<std::vector<cv::Point> > squares;
+		std::vector<cv::Point> centers;
+
+		findSquares(curFrame, squares, centers);
+		drawSquares(curFrame, squares, centers);
+
+		keyIn = (char)cv::waitKey(1);
+		if (keyIn == 27)
+		{
+			break;
+		}
 	}
-	//char keyIn;
-
-	//cv::VideoCapture cam(0);
-
-	//cv::Size camS = cv::Size((int)cam.get(cv::CAP_PROP_FRAME_WIDTH), (int)cam.get(cv::CAP_PROP_FRAME_HEIGHT));
-	//int ex = static_cast<int>(cam.get(cv::CAP_PROP_FOURCC));
-
-	//// Windows
-	//cv::namedWindow(WIN_VIDEO, cv::WINDOW_AUTOSIZE);
-	//cv::moveWindow(WIN_VIDEO, 0, 0);
-	//cv::namedWindow(WIN_TEST, cv::WINDOW_AUTOSIZE);
-	//cv::moveWindow(WIN_TEST, 660, 0);
-	//cv::namedWindow(WIN_TEST1, cv::WINDOW_AUTOSIZE);
-	//cv::moveWindow(WIN_TEST1, 1220, 0);
-	//
-
-	//cv::Mat curFrame, curFrameGray, curFrameBlurred, curGrad;
-
-	//int scale = 1, delta = 0, ddepth = CV_16S;
-
-	//cv::Mat kernelDilation = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7, 7));
-
-	//while (true)
-	//{
-	//	cam >> curFrame;
-	//	if (curFrame.empty())
-	//	{
-	//		std::cout << "No input";
-	//		break;
-	//	}
-
-	//	//dilate(curGrad, curGrad, kernelDilation);
-
-	//	//imshow(WIN_TEST, curGrad);
-
-	//	std::vector<std::vector<cv::Point> > squares;
-
-	//	findSquares(curFrame, squares);
-	//	drawSquares(curFrame, squares);
-
-	//	
-
-	//	keyIn = (char)cv::waitKey(1);
-	//	if (keyIn == 27)
-	//	{
-	//		break;
-	//	}
-	//}
 
 	return 0;
 }

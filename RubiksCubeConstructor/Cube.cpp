@@ -337,7 +337,7 @@ float Cube::getHeuristic(HeuristicType heuristicType, Cube & goalCube)
 			}
 		}
 		//heuristic = ceil((float)heuristic / 8);
-		heuristic = (float)heuristic / 16;
+		heuristic = (float)heuristic / 24;
 		break;
 	case HeuristicType::TOTAL_MANHATTAN:
 
